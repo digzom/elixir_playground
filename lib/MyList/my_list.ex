@@ -29,6 +29,8 @@ defmodule MyList do
   end
 
   def min(list) do
-    Enum.take(get_max(list), -1)
+    [head | _] = Enum.take(get_max(list), -1)
+
+    head
   end
 end
