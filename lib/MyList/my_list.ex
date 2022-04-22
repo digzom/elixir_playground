@@ -33,4 +33,6 @@ defmodule MyList do
 
     head
   end
+
+  # need to refactor this
 end
