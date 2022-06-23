@@ -621,9 +621,9 @@ Tuples are always copied, but the copying is shallow (memory level).
 
 **Modifying Lists**
 
-When you modify the *nth* element of a list, the new version will contain shallow copies of
-the first *n - 1* elements, followed by the modified element. After that, the tail is
-completely shared.
+When you modify the *nth* element of a list, the new version will contain shallow
+copies of the first *n - 1* elements, followed by the modified element. After that,
+the tail is completely shared.
 
 That's why adding elements to the end of a linked list is expensive. To append a new
 element at the tail, you have to iterate and copy the entire list.
@@ -637,16 +637,16 @@ iex(2)> [3 | list]
 [3, 1, 2, 3, 4]
 ```
 
-In this example, the [1, 2, 3, 4] part of the new list **is** the previous list. I added 3
-to the head, that points to that previous list.
+In this example, the [1, 2, 3, 4] part of the new list **is** the previous list. I
+added 3 to the head, that points to that previous list.
 
 **Benefits**
 
 - Side effect free
 - Data consistency
 
-The implicit consequence of immutable data is the ability to hold all versions of a data
-structure in the program:
+The implicit consequence of immutable data is the ability to hold all versions of a
+data structure in the program:
 
 ```elixir
 def complex_transformation(original_data) do
@@ -656,14 +656,14 @@ def complex_transformation(original_data) do
 end
 ```
 
-This code starts with original data and passes it through a series of transformations. Each
-one is a new, modified version of the input (original data).
+This code starts with original data and passes it through a series of
+transformations. Each one is a new, modified version of the input (original data).
 
-If something goes wrong, the function `complex_transformation` can return `original_data`,
-because none of the transformations will modify the memory ocupied by original_data.
+If something goes wrong, the function `complex_transformation` can return
+`original_data`, because none of the transformations will modify the memory ocupied
+by original_data.
 
-### Maps
-pag 65
+
 
 
 
