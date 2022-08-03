@@ -381,11 +381,79 @@ end
 If one of that terms fail, it will return the internal error message of the
 function called.
 
+In the background, this is a pattern matching: 
 
+```elixir
+{:ok, login} = {:ok, "alice"}
+{:ok, email} = {:ok, "email"}
+%{login: login, email: email}
+```
 
+# Loops
 
+## Recursion
 
+All that shit about lists.
 
+### Tail function call
+
+We have a *tail call* when the last thing our recursive function is doing is calling
+another function.
+
+In Erlang, we have something called *tail call optimization*. In this case, calling
+a function doesn't result in the usual *stack push*. What happens is more like a
+GOTO statement. You don't allocate additional stack space *before* calling the
+function, **which in turn means the tail function call consumes no additional 
+memory**. How is this possible?
+
+```elixir
+def original_fun() do
+  ...
+  another_fun()
+end
+```
+
+In the previous snippet, the last thing *original_fun* is doing is calling
+*another_fun*. So, in this case, the compiler can safely perform the operation by
+jumping to the beginning of *another_fun* without doing additional memory allocation.
+
+When *another_fun* finishes, you return to whatever place original_fun was called.
+
+That's why this is useful in recursive functions. You don't need to branching the
+function returns, you just store the result of the functions -- I guess.
+
+The downside of tail-call recursive functions: whereas classical (non-tail) 
+recursion has a more declarative feel to it, tail recursion usually looks more
+procedural.
+
+Example of a tail-recursive function:
+
+```elixir
+defmodule ListHelper do
+  def sum(list) do
+    do_sum(0, list)
+  end
+
+  defp do_sum(current_sum, []) do
+    current_sum
+  end
+
+  defp do_sum(current_sum, [head | tail]) do
+    new_sum = head + current_sum
+    do_sum(new_sum, tail)
+  end
+end
+```
+
+NOTE: Given the properties of tail recursion, you might think it’s always a
+preferred approach for doing loops. It’s not that simple. Non-tail recursion
+often looks more elegant and concise, and it can in some circumstances yield
+better performance. When you write recursion, you should choose the solution
+that seems like a better fit. If you need to run an infinite loop, tail
+recursion is the only way that will work. Otherwise, the choice amounts to which
+looks like a more elegant and performant solution.
+
+### Recognizing Tail Calls
 
 
 
