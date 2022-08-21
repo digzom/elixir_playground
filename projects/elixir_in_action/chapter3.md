@@ -453,7 +453,14 @@ that seems like a better fit. If you need to run an infinite loop, tail
 recursion is the only way that will work. Otherwise, the choice amounts to which
 looks like a more elegant and performant solution.
 
-### Recognizing Tail Calls
+### Higher-order functions
+
+Is a function that takes one or more functions as its and returns one or more 
+functions. Ex:
+
+```elixir
+iex(1)> Enum.map([1, 2, 3], &(2 * &1)
+```
 
 
 
