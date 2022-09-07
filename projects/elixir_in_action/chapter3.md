@@ -707,5 +707,14 @@ def large_lines(path) do
   |> Enum.filter(&(String.length(&1) > 80))
 end
 ```
+
 In the above example we use `File.stream`, and because of that, no byte from the file
-has been read yet at the return. **Continue**
+has been read yet at the return.
+
+When `Enum.filter` is called, you really execute the iteration. So you never read the
+entire file in memory; instead, you work on each line individually.
+
+**In a nutshell, to make a lazy computation, you need to return a lambda that performs
+*the computation.  This makes the computation lazy, because you return its description
+*rather than its result. When the computation needs to be materialized, the consumer
+*code can call the lambda.**
