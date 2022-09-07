@@ -63,8 +63,16 @@ defmodule ListHelper do
 
     make_it_positive(tail, [new_head | new_list])
   end
+
+  def sum_every_number(list) do
+    Enum.reduce(list, 0, fn n, a ->
+      IO.inspect("Element: #{n} ")
+      IO.inspect("Accumulator: #{a}")
+      IO.inspect("#{n} - #{a} = #{n - a}")
+      n - a
+    end)
+  end
 end
 
-list = ListHelper.positivate([-3, 3, -10])
-
+list = ListHelper.sum_every_number([1, 2, 3])
 IO.inspect(list)

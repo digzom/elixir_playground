@@ -15,5 +15,9 @@ defmodule AbilityModifier do
         "Your ability modifier is #{ability_modifier}"
     end
 
+  def cois() do
+    IO.puts("Olá")
+  end
+
   IO.puts(result)
 end

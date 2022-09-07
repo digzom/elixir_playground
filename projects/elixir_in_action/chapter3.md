@@ -149,6 +149,7 @@ iex(3)> age
 
 When matching a map, the left-side pattern doesn’t need to contain all the keys from
 the right-side term:
+
 ```elixir
 iex(4)> %{age: age} =
 %{name: "Bob", age: 25}
@@ -183,7 +184,7 @@ current hour of the day. Here’s the way to do it in a single compound match:
 ```elixir
 iex(6)> date_time = {_, {hour, _, _}} = :calendar.local_time()
 ```
-      
+
 The pattern-matching expression consists of two parts: the pattern (left side) and
 the term (right side). In a match expression, the attempt to match the term to the 
 pattern takes place. 
@@ -259,7 +260,8 @@ end
 
 ### Branching with multiclause functions
 
-**If and Unless**
+## If and Unless
+
 ```elixir
 if condition do
 ...
@@ -275,7 +277,7 @@ if condition, do: something, else: another_thing
 If a condition isn't met, and the `else` clause isn't specified, the return value is
 the atom nil.
 
-**Cond**
+## Cond
 
 If you used cond, the simple max/2 function could look like this:
 ```elixir
@@ -289,7 +291,7 @@ end
 
 The `true` pattern ensures that the condition will always be satisfied.
 
-**Case**
+### Case
 
 The case construct is most suitable if you don’t want to define a separate
 multiclause function.
@@ -357,8 +359,8 @@ end
 ```
 
 Quite noisy, huh? The with special form allows you to use pattern matching to chain
-multiple expressions, verify that the result of each conforms to the desired
-pattern, and return the first unexpected result.
+multiple expressions, verify that the result of each conforms to the desired pattern, and
+return the first unexpected result.
 
 ```elixir
 with pattern_1 <- expression_1,
@@ -378,8 +380,8 @@ with {:ok, login} <- extract_login(user)
 end
 ```
 
-If one of that terms fail, it will return the internal error message of the
-function called.
+If one of that terms fail, it will return the internal error message of the function
+called.
 
 In the background, this is a pattern matching: 
 
@@ -400,11 +402,11 @@ All that shit about lists.
 We have a *tail call* when the last thing our recursive function is doing is calling
 another function.
 
-In Erlang, we have something called *tail call optimization*. In this case, calling
-a function doesn't result in the usual *stack push*. What happens is more like a
-GOTO statement. You don't allocate additional stack space *before* calling the
-function, **which in turn means the tail function call consumes no additional 
-memory**. How is this possible?
+In Erlang, we have something called *tail call optimization*. In this case, calling a
+function doesn't result in the usual *stack push*. What happens is more like a GOTO
+statement. You don't allocate additional stack space *before* calling the function,
+**which in turn means the tail function call consumes no additional memory**. How is this
+possible?
 
 ```elixir
 def original_fun() do
@@ -422,9 +424,8 @@ When *another_fun* finishes, you return to whatever place original_fun was calle
 That's why this is useful in recursive functions. You don't need to branching the
 function returns, you just store the result of the functions -- I guess.
 
-The downside of tail-call recursive functions: whereas classical (non-tail) 
-recursion has a more declarative feel to it, tail recursion usually looks more
-procedural.
+The downside of tail-call recursive functions: whereas classical (non-tail) recursion has
+a more declarative feel to it, tail recursion usually looks more procedural.
 
 Example of a tail-recursive function:
 
@@ -445,38 +446,232 @@ defmodule ListHelper do
 end
 ```
 
-NOTE: Given the properties of tail recursion, you might think it’s always a
-preferred approach for doing loops. It’s not that simple. Non-tail recursion
-often looks more elegant and concise, and it can in some circumstances yield
-better performance. When you write recursion, you should choose the solution
-that seems like a better fit. If you need to run an infinite loop, tail
-recursion is the only way that will work. Otherwise, the choice amounts to which
-looks like a more elegant and performant solution.
+NOTE: Given the properties of tail recursion, you might think it’s always a preferred
+approach for doing loops. It’s not that simple. Non-tail recursion often looks more
+elegant and concise, and it can in some circumstances yield better performance. When you
+write recursion, you should choose the solution that seems like a better fit. If you need
+to run an infinite loop, tail recursion is the only way that will work. Otherwise, the
+choice amounts to which looks like a more elegant and performant solution.
 
 ### Higher-order functions
 
-Is a function that takes one or more functions as its and returns one or more 
-functions. Ex:
+Is a function that takes one or more functions as its and returns one or more functions.
+Ex:
 
 ```elixir
-iex(1)> Enum.map([1, 2, 3], &(2 * &1)
+iex(1)> Enum.map([1, 2, 3], &(2 * &1))
 ```
 
+The user extracting example with Enum.filter, the HOC:
 
+```elixir
+case Enum.filter(
+  ["login", "email", "password"],
+  &(not Map.has_key?(user, &1))) do
+  [] ->
+    ...
+  missing_fields ->
+    ...
+```
 
+### Reduce
 
+The most versatile function from module Enum. You can transform an enumerable into
+anything.
 
+Sum all elements of a list:
 
+In javascript, a imperative pattern:
 
+```js
+let sum = 0 // initializes the sum 
+[1, 2, 3].forEach(element => sum += element) // accumulates the result
+```
 
+In a functional language, you can't change the accumulator. How we do?
 
+```elixir
+Enum.reduce(enumerable, initial_acc, fn element, acc -> ... end)
+```
 
+Practical example:
 
+```elixir
+Enum.reduce(
+  [1, 2, 3], # initial state
+  0, # initial state of the accumulator
+  fn element, sum -> sum + element end # it returns the new accumulator value
+)
+```
 
+The lambda function is called in each iteration step. Its task is to add a bit of
+information to the result.
 
+You may recall that **some operators are functions**. So you can invoke an operation with
+them like this: &+/2. We can use it with High Order Functions:
 
+```elixir
+Enum.reduce([1, 2, 3], 0, &+/2) # 6
+```
 
+You can use multiclause lambda functions to control the conditions:
 
+```elixir
+# kinda messy
+Enum.reduce(
+  [1, "not a number", 2, :x, 3],
+  0,
+  fn
+    element, sum when is_number(element) -> sum + element
+    _element, sum -> sum
+  end
+)
 
+# a better approach
+defmodule NumHelper do
+  def sum_nums(enumerable) do
+    Enum.reduce(enumerable, 0, &add_num/2)
+  end
 
+  defp add_num(num, sum) when is_number(num), do: sum + num
+  defp add_num(_, sum), do: sum
+end
+```
 
+### Comprehensions
+
+Another construct to iterate and transform enumerables.
+
+The below implementation is used to square each element of a list.
+
+```elixir
+for x <- [1, 2, 3] do
+  x * x
+end
+```
+
+It's possible to perform nested iterations over multiple collections. The following
+example takes advantage of this feature to calculate a small multiplication table:
+
+```elixir
+for x <- [1, 2, 3], y <- [1, 2, 3], do: {x, y, x * y}
+[
+  {1, 1, 1}, {1, 2, 2}, {1, 3, 3},
+  {2, 1, 2}, {2, 2, 4}, {2, 3, 6},
+  {3, 1, 3}, {3, 2, 6}, {3, 3, 9}
+]
+```
+
+Comprehensions can iterate through anything that's enumerable. You can use range to
+compute multiplication table for single-digit numbers:
+
+```elixir
+for x <- 1..9, y <- 1..9, do: {x, y, x * y}
+```
+
+The result of a comprehension can be anything that's *collectable*. A comprehension
+iterates through enumerables, calling the given block for each elemenet and storing the
+results in some collectable structure.
+
+```elixir
+multiplication_table =
+  for x <- [8], y <- 1..9, into: %{} do
+      {{x, y}, x * y}
+  end
+```
+
+The result of the above snippet will be the answer to everything.
+
+The `into` option which specify what to collect. This will return a map which the first
+element of the tuple is used as a key that maps to the second element, which is the value.
+
+Another interesting feature of comprehensions is that you can specify filters. The
+following example computes nonsymmentrical multiplication_table for numbers x and y.
+
+```elixir
+multiplication_table =
+  for x <- 1..9, y <- 1..9, x <= y, into: %{} do
+    {{x, y}, x * y}
+  end
+```
+
+`x <= y` is the filter. It's almost like a `when`. If the filter returns true, the block
+is colled and the result is collected. Otherwise, the comprehension moves on the next
+element.
+
+Iterates through tuples:
+
+```elixir
+users = [user: "john", admin: "meg", guest: "barbara"] # yes, it's a tuple
+for {type, name} when type != :guest <- users do
+  String.upcase(name)
+end
+
+["JOHN", "MEG"]
+```
+
+### Streams
+
+Streams are a special kind of enumerable that can be useful for doing lazy composable
+operations over anything enumerable.
+
+Let's say you have a list of employees, and you need to print each one prefixed by their
+position in the list.
+
+```md
+1. Alice
+2. Bob
+3. John
+```
+
+Normally, we would do something like that:
+
+```elixir
+emp
+  |> Enum.with_index()
+  |> Enum.each(fn {employeer, position} -> IO.puts("#{position + 1} - #{employeer}") end)
+```
+
+And it works. But here we have to much iterations. With streams we can minimize this.
+
+**A stream is a lazy enumerable**.
+
+Using stream to double each element in a list:
+
+```elixir
+iex(1)> stream = [1, 2, 3] |> Stream.map(fn x -> 2 * x end)
+
+#the result is a stream:
+#Stream<[enum: [1, 2, 3], funs: [#Function<47.108234003/1 in Stream.map/2>]]>
+```
+
+Because is a stream, the iteration and the computation (in this case multiplication)
+haven't yet happened. Instead, you get the structure that describes that computation.
+
+To make it happen, you have to send the stram to an `Enum` function.
+
+```elixir
+iex(5)> Enum.to_list(stream)
+[2, 4, 5]
+```
+
+`Enum.to_list(stream)` is an *eager operation*. When it starts to iterating through the
+input, `Enum.to_list` requests that the input enumerable start producing values.
+
+```elixir
+iex(45)> emp |> Stream.with_index() |> Enum.each(fn {employeer, position} -> IO.puts("#{position + 1}. #{employeer}") end)
+```
+
+With stream, the output is the same, but values are produced one by one when Enum.to_list
+requests another element. This is useful when you need to compose multiple
+transformations.
+For example, you can use Enum.take/2 to request only one element from the stream:
+
+```elixir
+iex(1)> Enum.take(stream, 1)
+[2]
+```
+
+**Read this again:** because Enum.take/2 iterates only until it collects the desired
+number of element, the input stream doubled only one element in the list. The others were
+never visited.
