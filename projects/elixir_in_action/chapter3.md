@@ -675,3 +675,37 @@ iex(1)> Enum.take(stream, 1)
 **Read this again:** because Enum.take/2 iterates only until it collects the desired
 number of element, the input stream doubled only one element in the list. The others were
 never visited.
+
+The following example takes the input list and prints the square root:
+
+```elixir
+[9, -1, "foo", 25, 49]
+  |> Stream.filter(&(is_number(&1) and &1 > 0))
+  |> Stream.map(&{1, :math.sqrt(&1)})
+  |> Stream.with_index()
+  |> Enum.each(fn {{input, result}, index} ->
+       IO.puts("#{index + 1}. sqrt(#{input}) = #{result}")
+     end)
+```
+
+Even though you stack multiple transformations, everything is performed in a single pass
+when you call Enum.each. If you used Enum functions in every case, you did have to run
+multiple iterations over each intermediate list. With large data, this will incur in bad
+performance.
+
+**A typical case is when you need to parse each line of a file. Relying on eager Enum
+functions means you have to read the entire file into memory and then iterate through
+each line. In contrast, using streams makes it possible to read and immediately parse
+one line at a time.**
+
+Reading a file and returning only the lines that is larger than 80 characters:
+
+```elixir
+def large_lines(path) do
+  File.stream!(path)
+  |> Stream.map(&String.replace(&1, "\n", "")) 
+  |> Enum.filter(&(String.length(&1) > 80))
+end
+```
+In the above example we use `File.stream`, and because of that, no byte from the file
+has been read yet at the return. **Continue**
