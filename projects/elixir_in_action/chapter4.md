@@ -1,0 +1,93 @@
+# Data Abstrations
+
+In this chapter we will deal with building highter-level data structures. Such as Money,
+Date, OrderItem, etc.
+
+In Elixir we don't have classes with methods. We have modules with functions.
+
+String and List are modules implemented in pure Elixir, and they have functions to help
+the building process.
+
+We have `modifier functions`, with returns data of the same type of the argument. It's
+the case of String.upcase/1 or List.insert_at.
+
+Finally, we have `query functions` that returns some piece of information from the data.
+Such as String.length or List.first/1. That kind of function expects an instance of the
+data abstraction as argument, but returns another type of information.
+
+The base principles of data abstractions in elixir:
+
+- A module is in charge of abstracting some data
+- The module's functions usually expect an instance of the data abstration as the fist
+  argument
+- Modifier functions return a modified version of the abstraction
+- Query functions return some other type of data
+
+## Abstracting with modules
+
+MapSet, for example, is a map, but with some features abstracted into functions. It's a
+Struct.
+
+### Basic abstraction
+
+Check the folder `todo_list`.
+
+### Composing Abstractions
+
+Check the folder `todo_list`.
+
+The goal is to demonstrate that the code organization isn't that different from an OO
+approach. We use different tools to create abstractions - stateless modules and pure
+functions instead of classes and methods.
+
+### Abstracting with structs
+
+With `Structs` we can define and enforce some structure.
+
+To se how to define, check the `fraction.ex` file.
+
+A struct may exist only in a module, and a single module can define only one struct.
+
+Access properties of a map with dot is slighly slowly than with patter matching, where
+you read all field in a match. In normal situations it shoudn't make much of difference.
+
+### Structs vs maps
+
+Structs relies on top of maps, but there are some manipulations in maps that can't be
+done with structs.
+
+You can't call the `Enum` functions on a structs. You have to specify that the struct
+is an enumerable for this work properly. But you can call `Map` functions to deal with
+structs.
+
+```elixir
+iex(4)> Map.to_list(one_half)
+[__struct__: Fraction, a: 1, b: 2]
+```
+
+The `__struct__: Fraction` part is automatically included in each struct. It helps
+Elixir to distinguish structs from map and performs proper runtime dispatches from it
+whitin polymorfic generic code.
+
+A `struct` can't match a plain map.
+
+```elixir
+iex(5)> %Fraction{} = %{a: 1, b: 2}
+** (MatchError) no match of right hand side value: %{a: 1, b: 2}
+```
+
+But a plain map pattern can match a struct:
+
+```elixir
+iex(5)> %{a: a, b: b} = %Fraction{a: 1, b: 2}
+%Fraction{a: 1, b: 2}
+```
+
+This happen because in a match with maps, **all fields on the left hand expression must
+exist on the right hand**. So, that works:
+
+```elixir
+%Fraction{a: a, b: b} = %{__struct__: Fraction, a: 1, b: 2}
+```
+
+### Records
