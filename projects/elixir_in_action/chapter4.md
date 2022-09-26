@@ -51,7 +51,7 @@ A struct may exist only in a module, and a single module can define only one str
 Access properties of a map with dot is slighly slowly than with patter matching, where
 you read all field in a match. In normal situations it shoudn't make much of difference.
 
-### Structs vs maps
+**Structs vs maps**
 
 Structs relies on top of maps, but there are some manipulations in maps that can't be
 done with structs.
@@ -90,4 +90,29 @@ exist on the right hand**. So, that works:
 %Fraction{a: a, b: b} = %{__struct__: Fraction, a: 1, b: 2}
 ```
 
-### Records
+**Records**
+
+It is tuples with names. There's not much to say about because that isn't widely used in
+elixir. One common using case is to extract records in erlang files.
+
+### Data transparency
+
+Data is always transparent in elixir. Even if you don't want to, the data and the way it
+is handled in the abstractions is returned when we use there abstractions.
+
+When we inspect some structs, a special sintax is printed for us to improve redability.
+But if we need to know what is whitin an struct abstraction, we can set `struct: false`
+as an option in `IO.inspect`:
+
+```elixir
+iex(2)> IO.puts(inspect(mapset, structs: false))
+%{__struct__: MapSet, map: %{monday: [], tuesday: []}, version: 2}
+```
+
+So you can always see the structure of the data. In functional programming, hide things
+isn't enforced.
+
+Only complex types are typles, lists and maps. Any other structure is built on top of
+these types.
+
+## Working with hierarchical data
