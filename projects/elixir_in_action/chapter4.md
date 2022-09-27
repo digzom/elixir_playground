@@ -112,7 +112,9 @@ iex(2)> IO.puts(inspect(mapset, structs: false))
 So you can always see the structure of the data. In functional programming, hide things
 isn't enforced.
 
-Only complex types are typles, lists and maps. Any other structure is built on top of
+Only complex types are tuples, lists and maps. Any other structure is built on top of
 these types.
 
 ## Working with hierarchical data
+
+Please, refer to better_todo_list.ex.
