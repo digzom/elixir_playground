@@ -119,5 +119,35 @@ these types.
 
 Please, refer to better_todo_list.ex.
 
-### Updating entries
+## Polymorphism with protocols
+
+Polymorphism is a runtime decision about which code to execute, based on the nature of
+the input data. In Elixir we can do this with *protocols*.
+
+The Enum module, for example, is a generic code that works on anything enumerable:
+
+```elixir
+Enum.each([1, 2, 3], &IO.inspect/1) # list
+Enum.each(1..3, &IO.inspect/1) # range
+Enum.each(%{a: 1, b: 2}, &IO.inspect/1) # map
+```
+
+The same Enum.each/2 function works for two different types of data. Enum.each doesn't
+know nothing about how to walk each structure. It's protocol contract.
+
+### Protocol basics
+
+Protocol is a module in which you declare functions without implementing them. Like
+abstract interfaces in OO. The generic logic relies on the protocol, and you can provide
+a concrete implementation for different data types.
+
+Ex.:
+
+```elixir
+defprotocol String.Chars do # protocol definition
+  def to_string(thing) # function declaration
+end
+```
+
+As you can see, **the function was declared, but not implemented**.
 
