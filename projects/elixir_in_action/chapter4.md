@@ -118,3 +118,6 @@ these types.
 ## Working with hierarchical data
 
 Please, refer to better_todo_list.ex.
+
+### Updating entries
+
