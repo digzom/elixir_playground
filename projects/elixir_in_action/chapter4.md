@@ -151,3 +151,37 @@ end
 
 As you can see, **the function was declared, but not implemented**.
 
+The argument is what will determine the implementation that is called.
+
+To create the protocol to our TodoList, we have to implement the corresponding
+protocol:
+
+```elixir
+defimpl Collectable, for: TodoList do
+  def into(original) do
+    {original, &into_callback/2}
+  end
+
+  defp into_callback(todo_list, {:cont, entry}) do
+    TodoList.add_entry(todo_list, entry)
+  end
+
+  defp into_callback(todo_list, :done), do: todo_list
+  defp into_callback(todo_list, :halt), do: :ok
+end
+```
+
+Now we can implement a list comprehension to deal with our BetterTodoList struct.
+Or, if you prefer, use `Enum.into/2`.
+
+```elixir
+for entry <- entries, into: TodoList.new(), do: entry
+```
+
+
+Whithout the protocol implementation, we could't to this.
+
+We adapted the BetterTodoList abstraction to any generic code that relies on that
+protocol, such as list comprehensions and `Enum.into/2`.
+
+
