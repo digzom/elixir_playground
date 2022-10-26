@@ -3,7 +3,7 @@ defmodule BetterTodoList do
 
   def new(entries \\ []) do
     # this todo_list_acc is the updated state of BetterTodoList (the initial state)
-    # and here are transforming the entry in an instance of BetterTodoList struct
+    # and here we are transforming the entry in an instance of BetterTodoList struct
     # the lambda function receives the entry fist and the struct as second argument
     # that's why we call add_entry with this order of argument
     Enum.reduce(entries, %BetterTodoList{}, &add_entry(&2, &1))
