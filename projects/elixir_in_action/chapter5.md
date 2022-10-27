@@ -50,8 +50,58 @@ Process can comunicate with each other.
 *A process can be considered a container of this data -- a place where an immutable
 structure is stored and kept alive for a longer time, possibly forever*.
 
+## Working with processes
+
 >### Concurrency vs. parallelism
 >Concurrency doesn't necessarily imply parallelism. Two concurrent things have
 >independent execution contexts, but this doesn't mean that they will run in
 >parallel. If you run two CPU-bound concurrent tasks and you only have one CPU core,
 >parallel execution doesn't happen.
+
+Simulating a long-running database query:
+
+```elixir
+run_query = 
+  fn query_def ->
+    Process.sleep(2000)
+      "#{query_def} result"
+    end
+```
+
+If we run this "query" five times it will take 10 seconds to get all the results. This isn't efficient and neither performant nor scalable.
+
+### Creating processes
+
+To create a process we can use spawn/1 function:
+
+```elixir
+spawn(fn -> 
+  expression_1 
+  ...
+  expression_2
+end)
+```
+
+It takes a zero-arity lambda function that will run in the new process. After
+process is created, spawn immediately returns, and the caller process's execution
+continues. After the lambda is done, the spawned process exits and its memory is released.
+
+We can write a helper lambda that concurrently runs the query:
+
+```elixir
+async_query =
+  fn query_def ->
+    spawn(fn -> IO.puts(run_query.(query_def)) end)
+end
+``` 
+
+*This code demonstrates an important technique: passing data to the created process.
+Notice that async_query takes one argument and binds it to the query_def variable.
+This data is then passed to the newly created process via the closure mechanism.
+The inner lambda—the one that runs in a separate process—references the variable
+query_def from the outer scope. This results in cross-process data passing—the Runs
+in the new process Immediately returned Printed after two seconds Two seconds later
+134 Chapter 5 Concurrency primitives contents of query_def are passed from the main
+process to the newly created one.  When it’s passed to another process, the data is
+deep-copied, because two processes can’t share any memory.*
+
