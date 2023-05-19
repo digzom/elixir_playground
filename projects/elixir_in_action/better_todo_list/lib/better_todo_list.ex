@@ -26,7 +26,6 @@ defmodule BetterTodoList do
     }
   end
 
-  @spec entries(map(), Calendar.date()) :: map()
   def entries(todo_list = %BetterTodoList{}, date) do
     todo_list.entries
     |> Stream.filter(fn {_, entry} -> entry.date == date end)
@@ -69,16 +68,61 @@ defmodule BetterTodoList do
     end
   end
 
-  defimpl Collectable, for: BetterTodoList do
-    def into(original) do
-      {original, &into_callback/2}
+  defimpl Enumerable, for: BetterTodoList do
+    def map(arg, fun) do
+      for entry <- arg.entries, do: fun.(entry)
     end
 
-    defp into_callback(todo_list, {:cont, entry}) do
-      BetterTodoList.add_entry(todo_list, entry)
+    def count(enumerable)
+
+    def count(enumerable) when is_list(enumerable) do
+      length(enumerable)
     end
 
-    defp into_callback(todo_list, :done), do: todo_list
-    defp into_callback(todo_list, :halt), do: :ok
+    def count(enumerable) do
+      case Enumerable.count(enumerable) do
+        {:ok, value} when is_integer(value) ->
+          value
+
+        {:error, module} ->
+          enumerable |> module.reduce({:cont, 0}, fn _, acc -> {:cont, acc + 1} end) |> elem(1)
+      end
+    end
+  end
+
+  defimpl Enumerable, for: BetterTodoList do
+    def map(todo, fun) do
+      for entry <- todo.entries, do: fun.(entry)
+    end
+
+    def count(_function), do: {:error, __MODULE__}
+    def member?(_function, _value), do: {:error, __MODULE__}
+    def slice(_function), do: {:error, __MODULE__}
+
+    def reduce(function, acc, fun) when is_function(function, 2), do: function.(acc, fun)
+
+    def reduce(function, _acc, _fun) do
+      raise Protocol.UndefinedError,
+        protocol: @protocol,
+        value: function,
+        description: "reduce is not implemented for BetterTodoList"
+    end
+  end
+
+  defprotocol TodoEnumerable do
+    @spec map(any, (() -> any)) :: list()
+    def map(todo, fun)
+  end
+
+  defmodule TodoEnum do
+    def map(todo, fun) do
+      Enum.map(todo.entries, fn entry -> fun.(entry) end)
+    end
+  end
+
+  defimpl TodoEnumerable, for: BetterTodoList do
+    def map(%BetterTodoList{} = todo, fun) do
+      for entry <- todo.entries, do: fun.(entry)
+    end
   end
 end
