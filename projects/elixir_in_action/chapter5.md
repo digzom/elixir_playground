@@ -127,6 +127,77 @@ at any time and process it in some way.
 The receiver can call the macro `receive` to take one message from the mailbox and process
 it.
 
+The mailbox is a FIFO limited only by the available memory. A message can be removed from the
+queue only if it's consumed.
+
+You can send a message to another process using its **process identifier** (PID). Besides the
+returning of the spawn function is the PID, you can access the PID of a process using the
+function `self/0`.
+
+Once you have a PID, you can send messages to it using the `Kernel.send/2`:
+
+```elixir
+send(pid, {:an, :arbitraty, :term})
+```
+
+While the caller just continue its own execution, the message above is placed in the receiver's
+mailbox. 
+
+On the receiver side, you can pull a message from the mailbox with `receive` macro:
+
+```elixir
+receive do
+  pattern_1 -> do_something
+  pattern_2 -> do_something_else
+end
+```
+
+It works pretty much similar to the `case` expression: tries to pull one message from the mailbox,
+match it against any of the provided patterns, and run the corresponding code.
+
+If you don't want to block the process, or do something if none of the clauses matches, you can use
+the `after` clause:
+
+```elixir
+receive do
+  message -> IO.inspect(message)
+after
+  5000 -> IO.puts("not received")
+end
+```
+
+After five seconds you will see the message "not received" in case of not receiving any message.
+
+### Receive algorithm
+
+Maybe you noticed that the `receive`, when does not find any match, does not raise an clause error.
+The reason for it is because when a message does not match any of the provided clauses, it's put
+back into the process mailbox and the next message is processed.
+
+The `receive` works as follows:
+
+1. Take the first message from the mailbox
+2. Try to match against any of the provided patterns, going from top to bottom
+3. If a pattern matches the message, run the corresponding code
+4. If no pattern matches, put the message back into the mailbox at the same position it originally
+occupied. Then try the next message
+5. If there are no more messages in the queue, wait for a new one to arrive. When a new message
+arrives, start from step 1, inspecting the first message in the mailbox.
+6. If the `after` clause is specified and no message is matched in the given amount of time, run
+the code from the `after` block.
+
+### Synchronous sending
+
+Sometimes the sender needs a response from the receiver.
+
+The caller must include its own `pid` in the message contents and then wait for a response 
+from the receiver.
+
+### Collecting query results
+
+
+
+
 
 
 
