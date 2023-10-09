@@ -193,7 +193,47 @@ Sometimes the sender needs a response from the receiver.
 The caller must include its own `pid` in the message contents and then wait for a response 
 from the receiver.
 
+Let's demonstrate this in the section below.
+
 ### Collecting query results
+
+Now, let's make a "conversation" between the sender and the receiver. Let's use the `async_query`. Recall how it works:
+
+```elixir
+iex(1)> run_query =
+          fn query_def ->
+              Process.sleep(2000)
+            "#{query_def} result"
+          end
+
+iex(2)> async_query =
+          fn query_def ->
+              spawn(fn -> IO.puts(run_query.(query_def)) end)
+          end
+```
+
+Instead of printing to the screen, make the lambda send the query result to the caller process:
+
+```elixir
+iex(3)> async_query = 
+          fn query_def ->
+            caller = self()
+            spawn(fn ->
+              send(caller, {:query_result, run_query.(query_def)})
+            end)
+          end
+```
+
+We **need** to store the `pid` in that `caller` variable because we want the `pid` of the outer lambda. If we just call `self()`, we will store the `pid` of the spawned function, it will have no effect because we will be sending that message to itself, when our goal here is to send the message to the outer lambda. `self()` will always return the `pid` of the called function.
+
+Now we start our queries:
+
+```elixir
+iex(4)> Enum.each(1..5, &async_query.("query #{&1}"))
+```
+
+Notice that the caller process is neither blocked nor interrupted while receibing messages.
+
 
 
 
