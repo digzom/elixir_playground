@@ -201,9 +201,9 @@ Now, let's make a "conversation" between the sender and the receiver. Let's use 
 
 ```elixir
 iex(1)> run_query =
-          fn query_def ->
-              Process.sleep(2000)
-            "#{query_def} result"
+          fn {key, query} ->
+            Process.sleep(2000)
+            Map.new([{key, "#{query} result"}])
           end
 
 iex(2)> async_query =
@@ -218,7 +218,7 @@ Instead of printing to the screen, make the lambda send the query result to the 
 iex(3)> async_query = 
           fn query_def ->
             caller = self()
-            spawn(fn ->
+            spawn(fn -> 
               send(caller, {:query_result, run_query.(query_def)})
             end)
           end
@@ -229,14 +229,40 @@ We **need** to store the `pid` in that `caller` variable because we want the `pi
 Now we start our queries:
 
 ```elixir
-iex(4)> Enum.each(1..5, &async_query.("query #{&1}"))
+queries = %{order_query: "query order", user_query: "query user", client_query: "query client"}
+iex(4)> Enum.each(queries, &async_query.(&1))
 ```
 
 Notice that the caller process is neither blocked nor interrupted while receibing messages.
 
+Now, let's get the results. First, you make a function that pulls one message from the mail-box and extracts the query result from it:
 
+```elixir
+get_result =
+  fn ->
+    receive do
+      {:query_result, result} -> result
+    end
+  end
+```
 
+Now you can gather the results into a single list:
 
+```elixir
+results = Enum.map(queries, fn _ -> get_result.() end)
+```
+
+Then, we can gather all data in a unique map:
+
+```elixir
+results |> Enum.reduce(%{}, fn value, acc -> Map.merge(value, acc)  end)
+
+%{
+  client_query: "query client result",
+  order_query: "query order result",
+  user_query: "query user result"
+}
+```
 
 
 
