@@ -233,7 +233,7 @@ queries = %{order_query: "query order", user_query: "query user", client_query: 
 iex(4)> Enum.each(queries, &async_query.(&1))
 ```
 
-Notice that the caller process is neither blocked nor interrupted while receibing messages.
+Notice that the caller process is neither blocked nor interrupted while receiving messages.
 
 Now, let's get the results. First, you make a function that pulls one message from the mail-box and extracts the query result from it:
 
