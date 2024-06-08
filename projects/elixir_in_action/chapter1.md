@@ -248,10 +248,16 @@ other languages.
 Maybe for some problems that other languages could solve with a good ready-to-use
 package will take more time with elixir/erlang. 
 
+## Disadvantages
 
+Yep, even elixir has some.
 
+### Speed
 
+It is note as fast as C or C++, but erlang was created to handle stability. It will use as many hardware as available to complete the tasks and handle requests, but if the hardware isn't enough, you can expect a graceful degradation, having slower requests, but never a crashed system. If you system demands a lot of CPU resources, maybe erlang isn't the best solution for you project.
 
+### Ecosystem
 
+We have a lot of packages and libs, but not much as javascript, java or other mainstream language. But we are growing fast.
 
 
